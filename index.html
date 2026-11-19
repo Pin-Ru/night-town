@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>夜晚小鎮</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- 蠟筆質感：邊緣微晃動＋顆粒（HTML 色塊用） -->
+    <filter id="crayon-ui" x="-8%" y="-15%" width="116%" height="130%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="4" result="warp"/>
+      <feDisplacementMap in="SourceGraphic" in2="warp" scale="5" xChannelSelector="R" yChannelSelector="G" result="rough"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="9" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  6 0 0 0 -1.6" result="mask"/>
+      <feComposite in="rough" in2="mask" operator="in"/>
+    </filter>
+    <!-- 同一種質感，給路燈 SVG 用（座標系不同） -->
+    <filter id="crayon-svg" filterUnits="userSpaceOnUse" x="-6" y="-6" width="88" height="112">
+      <feTurbulence type="fractalNoise" baseFrequency="0.07" numOctaves="2" seed="4" result="warp"/>
+      <feDisplacementMap in="SourceGraphic" in2="warp" scale="3" xChannelSelector="R" yChannelSelector="G" result="rough"/>
+      <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="9" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  6 0 0 0 -1.6" result="mask"/>
+      <feComposite in="rough" in2="mask" operator="in"/>
+    </filter>
+  </defs>
+</svg>
+<main>
+  <header>
+    <h1>夜晚小鎮</h1>
+    <p class="sub">把小鎮的路燈一盞一盞點亮</p>
+  </header>
+
+  <section id="view-menu">
+    <div id="continue" class="continue" hidden>
+      <button class="btn primary" id="btn-continue"><span id="continue-label"></span></button>
+    </div>
+    <div class="levels" id="levels"></div>
+    <div class="foot">
+      <span class="stat" id="total-stars"></span>
+      <button class="btn small" id="btn-erase">清除進度</button>
+      <span id="erase-box" class="erase" hidden>
+        確定要清除全部進度嗎？
+        <button class="btn small danger" id="btn-erase-yes">確定清除</button>
+        <button class="btn small" id="btn-erase-no">取消</button>
+      </span>
+    </div>
+  </section>
+
+  <section id="view-game" hidden>
+    <div class="topbar">
+      <button class="btn small" id="btn-back">← 關卡</button>
+      <h2 id="g-title"></h2>
+    </div>
+    <p class="note" id="g-note"></p>
+    <div class="stats">
+      <div><span>步數</span><b id="g-moves">0</b></div>
+      <div><span>目標</span><b id="g-par">0</b></div>
+      <div><span>最佳</span><b id="g-best">尚無</b></div>
+    </div>
+    <div class="lamps" id="lamps" aria-label="路燈"></div>
+    <div class="switches" id="switches" aria-label="開關"></div>
+    <p class="msg" id="g-msg" aria-live="polite"></p>
+    <div class="btns">
+      <button class="btn" id="btn-undo">復原</button>
+      <button class="btn" id="btn-reset">重來</button>
+      <button class="btn primary" id="btn-next" hidden>下一關</button>
+    </div>
+  </section>
+</main>
+
+<script src="js/engine.js"></script>
+<script src="js/levels.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>
