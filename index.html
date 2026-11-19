@@ -6,7 +6,101 @@
 <title>夜晚小鎮</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&display=swap">
-<link rel="stylesheet" href="css/style.css">
+<style>
+/* 版面概念：奶油色紙面上的蠟筆小鎮。深藍色塊是按鈕與卡片，黃色是亮著的燈。
+ * 蠟筆質感用 SVG 濾鏡（邊緣微晃動＋顆粒）畫在色塊底層，文字保持清晰。 */
+:root{
+  --cream:#fdf6ea; --paper:#f1e3c8; --navy:#2d3160; --navy-soft:#6d7099; --lav:#cfd0ea;
+  --yellow:#ffc934; --yellow-ink:#2d3160; --off:#c4c2dc; --locked:#9a9cbd; --warn:#b5483f; --win:#8a4f00;
+  --font:"Huninn","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{
+  margin:0; background:var(--cream); color:var(--navy); font-family:var(--font); font-size:16px; line-height:1.6;
+  padding-block:24px 48px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+main{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1{font-size:1.7rem;margin:0;letter-spacing:.06em;text-wrap:balance}
+h2{font-size:1.15rem;margin:0;text-wrap:balance}
+.sub{margin:2px 0 0;color:var(--navy-soft);font-size:.9rem}
+:focus-visible{outline:3px dashed var(--navy);outline-offset:3px}
+section{display:flex;flex-direction:column;gap:14px}
+
+/* 蠟筆色塊：底色畫在 ::before，套用濾鏡 */
+.btn,.lvl,.sw,.stats div,.note{position:relative;isolation:isolate;border:none;background:none}
+.btn::before,.lvl::before,.sw::before,.stats div::before,.note::before{
+  content:"";position:absolute;inset:0;z-index:-1;background:var(--navy);
+  border-radius:var(--r,18px);filter:url(#crayon-ui);
+}
+.btn{--r:999px;font:inherit;font-size:.95rem;color:var(--cream);padding:8px 20px;cursor:pointer;transition:transform .12s}
+.btn:hover:not(:disabled){transform:translateY(-2px)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.small{font-size:.85rem;padding:4px 14px}
+.btn.primary{color:var(--yellow-ink)}
+.btn.primary::before{background:var(--yellow)}
+.btn.danger::before{background:var(--warn)}
+.btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.continue .btn{width:100%;text-align:left;padding:12px 22px}
+
+/* 關卡選擇 */
+.levels{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.lvl{
+  font:inherit;color:var(--cream);padding:10px 14px;cursor:pointer;transition:transform .12s;
+  display:grid;grid-template-columns:auto 1fr;gap:0 10px;align-items:center;text-align:left;min-width:0
+}
+.lvl:hover:not(:disabled){transform:translateY(-2px)}
+.lvl:disabled{cursor:default}
+.lvl:disabled::before{background:var(--locked)}
+.lvl-no{grid-row:span 2;font-size:1.5rem;width:2rem;text-align:center;color:var(--yellow);font-variant-numeric:tabular-nums}
+.lvl:disabled .lvl-no{color:var(--cream)}
+.lvl-title{font-size:.95rem;overflow-wrap:anywhere}
+.lvl-star{font-size:.8rem;color:var(--lav);letter-spacing:.08em}
+.lvl.done .lvl-star{color:var(--yellow)}
+.foot{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;color:var(--navy-soft);font-size:.9rem}
+.erase{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.stat{font-variant-numeric:tabular-nums}
+
+/* 遊戲 */
+.topbar{display:flex;gap:14px;align-items:center}
+.note{--r:16px;margin:0;padding:10px 16px;color:var(--navy);font-size:.9rem}
+.note::before{background:var(--paper)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stats div{padding:6px 10px;display:flex;flex-direction:column;align-items:center;min-width:0;color:var(--cream)}
+.stats span{font-size:.75rem;color:var(--lav)}
+.stats b{font-weight:normal;font-size:1.15rem;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;text-align:center}
+.lamps,.switches{display:flex;gap:8px 12px;justify-content:center;flex-wrap:wrap}
+.lamps{padding-top:8px}
+.lamp{width:68px;display:flex;flex-direction:column;align-items:center;transition:transform .15s}
+.lampsvg{width:64px;height:84px}
+.lampsvg .pole,.lampsvg .base{fill:var(--navy)}
+.lampsvg .head{fill:var(--off);transition:fill .2s}
+.lampsvg .face path{fill:none;stroke:var(--navy);stroke-width:3;stroke-linecap:round}
+.lampsvg .spark path{fill:none;stroke:var(--yellow);stroke-width:3.4;stroke-linecap:round}
+.lamp.on .head{fill:var(--yellow)}
+.lamp.on .lampsvg{filter:drop-shadow(0 0 10px rgba(255,201,52,.55))}
+.num{font-size:.8rem;color:var(--navy-soft);font-variant-numeric:tabular-nums}
+.lamp.link{transform:translateY(-6px)}
+.lamp.link .num{color:var(--navy);font-weight:bold}
+.sw{
+  font:inherit;color:var(--cream);padding:10px 16px;min-width:72px;cursor:pointer;transition:transform .12s;
+  display:flex;flex-direction:column;align-items:center;gap:4px
+}
+.sw:hover:not(:disabled){transform:translateY(-2px)}
+.sw:disabled{opacity:.5;cursor:default}
+.sw b{font-size:1.25rem;font-weight:normal}
+.sw em{font-style:normal;font-size:.78rem;color:var(--lav)}
+.sw.one em{color:var(--yellow)}
+.dots{display:flex;gap:5px;filter:url(#crayon-ui)}
+.dots i{width:10px;height:10px;border-radius:50%;background:var(--navy-soft)}
+.dots i.l{background:var(--yellow)}
+.msg{min-height:1.6em;margin:0;color:var(--win);text-align:center;text-wrap:balance}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+</style>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
@@ -73,9 +167,423 @@
   </section>
 </main>
 
-<script src="js/engine.js"></script>
-<script src="js/levels.js"></script>
-<script src="js/storage.js"></script>
-<script src="js/ui.js"></script>
+<script>
+/* 夜晚小鎮：遊戲引擎（純邏輯，不碰畫面）
+ * 狀態只有一個陣列：lamps[i] === true 表示第 i 盞燈亮著。
+ * 開關型別：
+ *   toggle：切換連到的燈（亮變暗、暗變亮）
+ *   on    ：單向開關，只會把連到的燈點亮，不會熄滅
+ */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.Engine = factory();
+})(this, function () {
+  'use strict';
+
+  /** 按下第 idx 個開關，回傳新的燈狀態（不修改原陣列） */
+  function press(level, lamps, idx) {
+    var sw = level.switches[idx];
+    var next = lamps.slice();
+    sw.links.forEach(function (i) {
+      next[i] = sw.type === 'on' ? true : !next[i];
+    });
+    return next;
+  }
+
+  /** 勝利判定：所有燈都亮 */
+  function isWin(lamps) {
+    return lamps.every(Boolean);
+  }
+
+  function encode(lamps) {
+    var m = 0;
+    lamps.forEach(function (on, i) { if (on) m |= (1 << i); });
+    return m;
+  }
+
+  /**
+   * 用廣度優先搜尋找最少步數（par）。
+   * 回傳 { par, path }，path 是一組最短解的開關編號；無解回傳 null。
+   */
+  function solve(level) {
+    var n = level.start.length;
+    var goal = (1 << n) - 1;
+    var startMask = encode(level.start);
+    if (startMask === goal) return { par: 0, path: [] };
+
+    var prev = {};            // mask -> { from, sw }
+    prev[startMask] = null;
+    var queue = [startMask];
+
+    for (var head = 0; head < queue.length; head++) {
+      var cur = queue[head];
+      var lamps = [];
+      for (var b = 0; b < n; b++) lamps.push(!!(cur & (1 << b)));
+      for (var s = 0; s < level.switches.length; s++) {
+        var nm = encode(press(level, lamps, s));
+        if (nm in prev) continue;
+        prev[nm] = { from: cur, sw: s };
+        if (nm === goal) {
+          var path = [], m = nm;
+          while (prev[m]) { path.unshift(prev[m].sw); m = prev[m].from; }
+          return { par: path.length, path: path };
+        }
+        queue.push(nm);
+      }
+    }
+    return null;
+  }
+
+  /** 星星：≤par 三星；≤par+2 兩星；其餘一星 */
+  function stars(moves, par) {
+    if (moves <= par) return 3;
+    if (moves <= par + 2) return 2;
+    return 1;
+  }
+
+  /** 每盞燈至少被一個開關連到（否則那盞燈只是擺設） */
+  function allLampsCovered(level) {
+    var seen = {};
+    level.switches.forEach(function (sw) { sw.links.forEach(function (i) { seen[i] = true; }); });
+    for (var i = 0; i < level.start.length; i++) if (!seen[i]) return false;
+    return true;
+  }
+
+  return { press: press, isWin: isWin, solve: solve, stars: stars, allLampsCovered: allLampsCovered };
+});
+
+</script>
+<script>
+/* 由 tools/generate-levels.js 產生，請勿手動編輯 */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.LEVELS = factory();
+})(this, function () {
+  'use strict';
+  return [{
+    "id": 1,
+    "title": "第一盞燈",
+    "note": "每個開關下方的亮點，表示它會切換哪幾盞燈。",
+    "par": 2,
+    "switches": [{ "type": "toggle", "links": [1, 2] }, { "type": "toggle", "links": [0, 1] }, { "type": "toggle", "links": [0] }],
+    "start": [false, true, false]
+  },
+  {
+    "id": 2,
+    "title": "路口",
+    "note": "同一個開關按兩次等於沒按，所以順序不重要。",
+    "par": 2,
+    "switches": [{ "type": "toggle", "links": [3] }, { "type": "toggle", "links": [1, 3] }, { "type": "toggle", "links": [0, 3] }, { "type": "toggle", "links": [0, 2] }],
+    "start": [false, false, false, false]
+  },
+  {
+    "id": 3,
+    "title": "轉角",
+    "note": "",
+    "par": 3,
+    "switches": [{ "type": "toggle", "links": [1, 2, 3] }, { "type": "toggle", "links": [0, 2, 3] }, { "type": "toggle", "links": [1, 3] }, { "type": "toggle", "links": [2, 3] }],
+    "start": [false, true, true, false]
+  },
+  {
+    "id": 4,
+    "title": "單向的路",
+    "note": "新機關：標有「只亮」的單向開關，只會點亮燈，不會熄滅。",
+    "par": 2,
+    "switches": [{ "type": "toggle", "links": [0, 1] }, { "type": "on", "links": [1, 2, 3] }, { "type": "toggle", "links": [3] }, { "type": "toggle", "links": [0] }],
+    "start": [false, true, false, false]
+  },
+  {
+    "id": 5,
+    "title": "小巷",
+    "note": "",
+    "par": 3,
+    "switches": [{ "type": "toggle", "links": [2] }, { "type": "toggle", "links": [0, 4] }, { "type": "toggle", "links": [0, 3, 4] }, { "type": "on", "links": [1] }, { "type": "toggle", "links": [4] }],
+    "start": [false, false, false, false, false]
+  },
+  {
+    "id": 6,
+    "title": "雙向與單向",
+    "note": "單向開關的按下順序可能會影響結果。",
+    "par": 4,
+    "switches": [{ "type": "on", "links": [2, 3] }, { "type": "on", "links": [0, 3] }, { "type": "toggle", "links": [2, 4] }, { "type": "toggle", "links": [3] }, { "type": "toggle", "links": [0, 1, 4] }],
+    "start": [true, false, true, false, true]
+  },
+  {
+    "id": 7,
+    "title": "長街",
+    "note": "",
+    "par": 4,
+    "switches": [{ "type": "on", "links": [0, 1] }, { "type": "toggle", "links": [1, 4, 5] }, { "type": "toggle", "links": [4, 5] }, { "type": "toggle", "links": [2, 3] }, { "type": "toggle", "links": [0, 1, 4] }, { "type": "toggle", "links": [3, 4, 5] }],
+    "start": [true, false, false, false, true, false]
+  },
+  {
+    "id": 8,
+    "title": "廣場",
+    "note": "",
+    "par": 4,
+    "switches": [{ "type": "on", "links": [0, 5] }, { "type": "toggle", "links": [1, 4] }, { "type": "toggle", "links": [2, 5] }, { "type": "on", "links": [1, 4, 5] }, { "type": "toggle", "links": [3, 5] }, { "type": "toggle", "links": [3, 4, 5] }],
+    "start": [false, false, false, false, false, true]
+  },
+  {
+    "id": 9,
+    "title": "鐘塔下",
+    "note": "",
+    "par": 5,
+    "switches": [{ "type": "toggle", "links": [0, 3] }, { "type": "toggle", "links": [2, 6] }, { "type": "on", "links": [3, 5] }, { "type": "toggle", "links": [3, 4, 5] }, { "type": "on", "links": [2, 3] }, { "type": "toggle", "links": [1, 3] }, { "type": "toggle", "links": [3, 5, 6] }],
+    "start": [false, false, false, false, false, true, false]
+  },
+  {
+    "id": 10,
+    "title": "整座小鎮",
+    "note": "最後一關：全部的燈都交給你了。",
+    "par": 5,
+    "switches": [{ "type": "on", "links": [2, 6] }, { "type": "toggle", "links": [0, 3] }, { "type": "toggle", "links": [0, 2] }, { "type": "toggle", "links": [1, 4, 6] }, { "type": "on", "links": [4, 6] }, { "type": "toggle", "links": [0, 4] }, { "type": "toggle", "links": [0, 5] }],
+    "start": [false, false, false, false, true, false, false]
+  }];
+});
+
+</script>
+<script>
+/* 夜晚小鎮：存檔（瀏覽器本機）
+ * 資料格式 v1：
+ *   { v: 1,
+ *     cleared: { "<關卡id>": { stars: 1~3, best: 最少步數 } },
+ *     current: null | { id, lamps: [bool], moves, hist: [[bool]] } }   ← 暫停中的關卡
+ * 無法使用 localStorage（隱私模式等）時，退回只存在記憶體，遊戲仍可玩。
+ */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.Store = factory();
+})(this, function () {
+  'use strict';
+  var KEY = 'nightTown.v1';
+  var data = fresh();
+
+  function fresh() { return { v: 1, cleared: {}, current: null }; }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && parsed.v === 1 && parsed.cleared) data = parsed;
+      }
+    } catch (e) { /* 讀取失敗就用空白存檔 */ }
+    return data;
+  }
+
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { /* 存不了就只留在記憶體 */ }
+  }
+
+  return {
+    load: load,
+    get: function () { return data; },
+    /** 記錄暫停中的關卡狀態 */
+    setCurrent: function (cur) { data.current = cur; save(); },
+    /** 記錄過關結果，只保留最佳成績 */
+    recordClear: function (id, moves, stars) {
+      var old = data.cleared[id];
+      data.cleared[id] = {
+        stars: Math.max(stars, old ? old.stars : 0),
+        best: Math.min(moves, old ? old.best : Infinity)
+      };
+      data.current = null;
+      save();
+    },
+    clearAll: function () { data = fresh(); save(); }
+  };
+});
+
+</script>
+<script>
+/* 夜晚小鎮：畫面與操作 */
+(function () {
+  'use strict';
+  var levels = window.LEVELS, Engine = window.Engine, Store = window.Store;
+  var save = Store.load();
+
+  var $ = function (id) { return document.getElementById(id); };
+  var parCache = {};
+  function parOf(lv) {
+    if (!(lv.id in parCache)) { var s = Engine.solve(lv); parCache[lv.id] = s ? s.par : lv.par; }
+    return parCache[lv.id];
+  }
+  function levelById(id) {
+    for (var i = 0; i < levels.length; i++) if (levels[i].id === id) return levels[i];
+    return null;
+  }
+  function starText(n) { return '★★★'.slice(0, n) + '☆☆☆'.slice(0, 3 - n); }
+  function unlocked(i) { return i === 0 || !!save.cleared[levels[i - 1].id]; }
+
+  /* ---------- 畫面切換 ---------- */
+  function show(view) {
+    $('view-menu').hidden = view !== 'menu';
+    $('view-game').hidden = view !== 'game';
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------- 關卡選擇 ---------- */
+  function renderMenu() {
+    var html = '', total = 0;
+    levels.forEach(function (lv, i) {
+      var c = save.cleared[lv.id], open = unlocked(i);
+      if (c) total += c.stars;
+      html += '<button class="lvl' + (c ? ' done' : '') + '" data-i="' + i + '"' + (open ? '' : ' disabled') + '>' +
+        '<span class="lvl-no">' + lv.id + '</span>' +
+        '<span class="lvl-title">' + lv.title + '</span>' +
+        '<span class="lvl-star">' + (c ? starText(c.stars) : (open ? '未過關' : '未解鎖')) + '</span>' +
+        '</button>';
+    });
+    $('levels').innerHTML = html;
+    $('total-stars').textContent = '星星 ' + total + ' / ' + levels.length * 3;
+
+    var cur = save.current && levelById(save.current.id);
+    $('continue').hidden = !cur;
+    if (cur) $('continue-label').textContent = '繼續第 ' + cur.id + ' 關：' + cur.title + '（已按 ' + save.current.moves + ' 步）';
+  }
+
+  /* ---------- 遊戲 ---------- */
+  var G = null; // { lv, i, lamps, moves, hist, won }
+
+  function startLevel(i, resume) {
+    var lv = levels[i];
+    var cur = save.current;
+    if (resume && cur && cur.id === lv.id && cur.lamps.length === lv.start.length) {
+      G = { lv: lv, i: i, lamps: cur.lamps.slice(), moves: cur.moves, hist: cur.hist.map(function (h) { return h.slice(); }), won: false };
+    } else {
+      G = { lv: lv, i: i, lamps: lv.start.slice(), moves: 0, hist: [], won: false };
+      Store.setCurrent({ id: lv.id, lamps: G.lamps.slice(), moves: 0, hist: [] });
+    }
+    show('game');
+    renderGame();
+  }
+
+  function persist() {
+    Store.setCurrent({ id: G.lv.id, lamps: G.lamps.slice(), moves: G.moves, hist: G.hist });
+  }
+
+  function press(s) {
+    if (G.won) return;
+    G.hist.push(G.lamps.slice());
+    G.lamps = Engine.press(G.lv, G.lamps, s);
+    G.moves++;
+    if (Engine.isWin(G.lamps)) {
+      G.won = true;
+      Store.recordClear(G.lv.id, G.moves, Engine.stars(G.moves, parOf(G.lv)));
+    } else {
+      persist();
+    }
+    renderGame();
+  }
+
+  function undo() {
+    if (G.won || !G.hist.length) return;
+    G.lamps = G.hist.pop();
+    G.moves--;
+    persist();
+    renderGame();
+  }
+
+  function resetLevel() {
+    G.lamps = G.lv.start.slice(); G.moves = 0; G.hist = []; G.won = false;
+    persist();
+    renderGame();
+  }
+
+  function lampSVG(on) {
+    var face = on
+      ? '<path d="M28 34q4-6 8 0M46 34q4-6 8 0"/><path d="M33 46q9 8 18 0"/>'
+      : '<path d="M28 36h8M46 36h8"/><path d="M36 48h12"/>';
+    var spark = on ? '<g class="spark"><path d="M11 12l8 8"/><path d="M5 27l10 3"/><path d="M24 3l3 10"/></g>' : '';
+    return '<svg viewBox="0 0 76 100" class="lampsvg" aria-hidden="true"><g filter="url(#crayon-svg)">' +
+      spark +
+      '<rect x="38" y="60" width="8" height="32" rx="3" class="pole"></rect>' +
+      '<ellipse cx="42" cy="93" rx="17" ry="5" class="base"></ellipse>' +
+      '<circle cx="42" cy="36" r="27" class="head"></circle>' +
+      '<g class="face">' + face + '</g></g></svg>';
+  }
+
+  function renderGame() {
+    var lv = G.lv, par = parOf(lv), lampsHtml = '', swHtml = '';
+    $('g-title').textContent = '第 ' + lv.id + ' 關　' + lv.title;
+    $('g-note').textContent = lv.note;
+    $('g-note').hidden = !lv.note;
+    $('g-moves').textContent = G.moves;
+    $('g-par').textContent = par;
+    var c = save.cleared[lv.id];
+    $('g-best').textContent = c ? c.best + ' 步 ' + starText(c.stars) : '尚無';
+
+    G.lamps.forEach(function (on, i) {
+      lampsHtml += '<div class="lamp' + (on ? ' on' : '') + '" data-i="' + i + '">' + lampSVG(on) +
+        '<span class="num">' + (i + 1) + '</span></div>';
+    });
+    lv.switches.forEach(function (sw, j) {
+      var dots = '';
+      for (var i = 0; i < G.lamps.length; i++) dots += '<i class="' + (sw.links.indexOf(i) >= 0 ? 'l' : '') + '"></i>';
+      var letter = String.fromCharCode(65 + j), isOn = sw.type === 'on';
+      swHtml += '<button class="sw' + (isOn ? ' one' : '') + '" data-s="' + j + '"' + (G.won ? ' disabled' : '') +
+        ' aria-label="開關 ' + letter + (isOn ? '（只亮）' : '') + '，連到第 ' + sw.links.map(function (x) { return x + 1; }).join('、') + ' 盞燈">' +
+        '<b>' + letter + '</b><span class="dots">' + dots + '</span>' +
+        '<em>' + (isOn ? '只亮' : '切換') + '</em></button>';
+    });
+    $('lamps').innerHTML = lampsHtml;
+    $('switches').innerHTML = swHtml;
+
+    var last = G.i === levels.length - 1;
+    var msg = '';
+    if (G.won) {
+      var st = Engine.stars(G.moves, par);
+      msg = '全部亮起來了！' + G.moves + ' 步（目標 ' + par + ' 步）' + starText(st);
+      if (st < 3) msg += '　再少按幾步就能拿三星。';
+      if (last) msg += '　整座小鎮都醒了。';
+    }
+    $('g-msg').textContent = msg;
+    $('btn-next').hidden = !(G.won && !last);
+    $('btn-undo').disabled = G.won || !G.hist.length;
+  }
+
+  function setLink(s) {
+    var links = s === null ? [] : G.lv.switches[s].links;
+    Array.prototype.forEach.call(document.querySelectorAll('.lamp'), function (el) {
+      el.classList.toggle('link', links.indexOf(+el.dataset.i) >= 0);
+    });
+  }
+
+  /* ---------- 事件 ---------- */
+  $('levels').addEventListener('click', function (e) {
+    var b = e.target.closest('.lvl');
+    if (b && !b.disabled) startLevel(+b.dataset.i, false);
+  });
+  $('btn-continue').addEventListener('click', function () {
+    var lv = levelById(save.current.id);
+    startLevel(levels.indexOf(lv), true);
+  });
+  $('btn-back').addEventListener('click', function () { renderMenu(); show('menu'); });
+  $('btn-undo').addEventListener('click', undo);
+  $('btn-reset').addEventListener('click', resetLevel);
+  $('btn-next').addEventListener('click', function () { startLevel(G.i + 1, false); });
+
+  var sw = $('switches');
+  sw.addEventListener('click', function (e) { var b = e.target.closest('.sw'); if (b) press(+b.dataset.s); });
+  sw.addEventListener('pointerover', function (e) { var b = e.target.closest('.sw'); if (b) setLink(+b.dataset.s); });
+  sw.addEventListener('pointerout', function () { setLink(null); });
+  sw.addEventListener('focusin', function (e) { var b = e.target.closest('.sw'); if (b) setLink(+b.dataset.s); });
+  sw.addEventListener('focusout', function () { setLink(null); });
+
+  /* 清除進度：用頁面內的二次確認，不使用瀏覽器對話框 */
+  $('btn-erase').addEventListener('click', function () { $('erase-box').hidden = false; $('btn-erase').hidden = true; });
+  $('btn-erase-no').addEventListener('click', function () { $('erase-box').hidden = true; $('btn-erase').hidden = false; });
+  $('btn-erase-yes').addEventListener('click', function () {
+    Store.clearAll(); save = Store.get();
+    $('erase-box').hidden = true; $('btn-erase').hidden = false;
+    renderMenu();
+  });
+
+  renderMenu();
+  show('menu');
+})();
+
+</script>
 </body>
 </html>
